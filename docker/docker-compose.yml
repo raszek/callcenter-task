@@ -1,0 +1,30 @@
+services:
+  database:
+    image: mysql
+    restart: always
+    volumes:
+      - project-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: application
+    ports:
+      - 3306:3306
+
+  app:
+    build: .
+    volumes:
+      - ../:/var/www/html/app
+    ports:
+      - '8000:8000'
+    depends_on:
+      - database
+  mailer:
+    image: axllent/mailpit
+    ports:
+      - "1025"
+      - "8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+volumes:
+  project-data:

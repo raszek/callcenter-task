@@ -1,0 +1,132 @@
+### Agent API Manual Tests
+### Base URL - adjust port if needed
+@baseUrl = http://localhost:8000
+@contentType = application/json
+
+###############################################################################
+# List all agents
+###############################################################################
+
+### GET - List all agents
+GET {{baseUrl}}/api/agents
+Accept: {{contentType}}
+
+###############################################################################
+# Get single agent
+###############################################################################
+
+### GET - Get agent by ID (change ID as needed)
+GET {{baseUrl}}/api/agents/80
+Accept: {{contentType}}
+
+### GET - Get non-existent agent (should return 404)
+GET {{baseUrl}}/api/agents/999999
+Accept: {{contentType}}
+
+###############################################################################
+# Create agent
+###############################################################################
+
+### POST - Create new agent
+POST {{baseUrl}}/api/agents
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Alice",
+  "lastName": "Cooper"
+}
+
+### POST - Create another agent
+POST {{baseUrl}}/api/agents
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Bob",
+  "lastName": "Dylan"
+}
+
+### POST - Validation error - missing firstName
+POST {{baseUrl}}/api/agents
+Content-Type: {{contentType}}
+
+{
+  "lastName": "Test"
+}
+
+### POST - Validation error - missing lastName
+POST {{baseUrl}}/api/agents
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Test"
+}
+
+### POST - Validation error - empty firstName
+POST {{baseUrl}}/api/agents
+Content-Type: {{contentType}}
+
+{
+  "firstName": "",
+  "lastName": "Test"
+}
+
+### POST - Validation error - firstName too long (>255 chars)
+POST {{baseUrl}}/api/agents
+Content-Type: {{contentType}}
+
+{
+  "firstName": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "lastName": "Test"
+}
+
+###############################################################################
+# Update agent
+###############################################################################
+
+### PUT - Update agent (change ID as needed)
+PUT {{baseUrl}}/api/agents/81
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Alice Updated",
+  "lastName": "Cooper Updated"
+}
+
+### PUT - Update non-existent agent (should return 404)
+PUT {{baseUrl}}/api/agents/999999
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Test",
+  "lastName": "User"
+}
+
+### PUT - Validation error - missing firstName
+PUT {{baseUrl}}/api/agents/1
+Content-Type: {{contentType}}
+
+{
+  "lastName": "Cooper"
+}
+
+### PUT - Validation error - missing lastName
+PUT {{baseUrl}}/api/agents/1
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Alice"
+}
+
+###############################################################################
+# Delete agent
+###############################################################################
+
+### DELETE - Delete agent (change ID as needed - use an ID that exists but you want to delete)
+DELETE {{baseUrl}}/api/agents/5
+
+### DELETE - Delete non-existent agent (should return 404)
+DELETE {{baseUrl}}/api/agents/999999
+
+###############################################################################
+# End of Agent API Tests
+###############################################################################

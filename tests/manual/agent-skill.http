@@ -1,0 +1,282 @@
+### Agent Skill API Manual Tests
+### Base URL - adjust port if needed
+@baseUrl = http://localhost:8000
+@contentType = application/json
+@agentId = 80
+@queueId = 1
+
+###############################################################################
+# List agent skills
+###############################################################################
+
+### GET - List all skills for an agent
+GET {{baseUrl}}/api/agents/{{agentId}}/skills
+Accept: {{contentType}}
+
+### GET - List skills for different agent
+GET {{baseUrl}}/api/agents/2/skills
+Accept: {{contentType}}
+
+### GET - List skills for non-existent agent (should return 404)
+GET {{baseUrl}}/api/agents/999999/skills
+Accept: {{contentType}}
+
+###############################################################################
+# Get single agent skill
+###############################################################################
+
+### GET - Get skill by ID
+GET {{baseUrl}}/api/agents/{{agentId}}/skills/1
+Accept: {{contentType}}
+
+### GET - Get non-existent skill (should return 404)
+GET {{baseUrl}}/api/agents/{{agentId}}/skills/999999
+Accept: {{contentType}}
+
+### GET - Get skill that doesn't belong to agent (should return 404)
+GET {{baseUrl}}/api/agents/1/skills/50
+Accept: {{contentType}}
+
+###############################################################################
+# Create agent skill
+###############################################################################
+
+### POST - Create expert skill (primary)
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### POST - Create advanced skill (secondary)
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": 2,
+  "efficiencyCoefficient": 0.85,
+  "skillLevel": 4,
+  "isPrimary": false
+}
+
+### POST - Create intermediate skill
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": 3,
+  "efficiencyCoefficient": 0.75,
+  "skillLevel": 3,
+  "isPrimary": false
+}
+
+### POST - Create beginner skill
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": 4,
+  "efficiencyCoefficient": 0.65,
+  "skillLevel": 2,
+  "isPrimary": false
+}
+
+### POST - Create trainee skill
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": 5,
+  "efficiencyCoefficient": 0.55,
+  "skillLevel": 1,
+  "isPrimary": false
+}
+
+### POST - Create for non-existent agent (should return 404)
+POST {{baseUrl}}/api/agents/999999/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### POST - Create with non-existent queue (should return 404)
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": 999999,
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### POST - Validation error - missing queueId
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### POST - Validation error - missing efficiencyCoefficient
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### POST - Validation error - missing skillLevel
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "isPrimary": true
+}
+
+### POST - Validation error - missing isPrimary
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5
+}
+
+### POST - Validation error - negative efficiencyCoefficient
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": -0.5,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### POST - Validation error - negative skillLevel
+POST {{baseUrl}}/api/agents/{{agentId}}/skills
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": -1,
+  "isPrimary": true
+}
+
+###############################################################################
+# Update agent skill
+###############################################################################
+
+### PUT - Update skill level (promote to expert)
+PUT {{baseUrl}}/api/agents/{{agentId}}/skills/1
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.98,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### PUT - Downgrade skill level
+PUT {{baseUrl}}/api/agents/{{agentId}}/skills/1
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.75,
+  "skillLevel": 3,
+  "isPrimary": false
+}
+
+### PUT - Change queue assignment
+PUT {{baseUrl}}/api/agents/{{agentId}}/skills/1
+Content-Type: {{contentType}}
+
+{
+  "queueId": 2,
+  "efficiencyCoefficient": 0.85,
+  "skillLevel": 4,
+  "isPrimary": true
+}
+
+### PUT - Update non-existent agent (should return 404)
+PUT {{baseUrl}}/api/agents/999999/skills/1
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### PUT - Update non-existent skill (should return 404)
+PUT {{baseUrl}}/api/agents/{{agentId}}/skills/999999
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### PUT - Update skill that doesn't belong to agent (should return 404)
+PUT {{baseUrl}}/api/agents/1/skills/50
+Content-Type: {{contentType}}
+
+{
+  "queueId": {{queueId}},
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+### PUT - Update with non-existent queue (should return 404)
+PUT {{baseUrl}}/api/agents/{{agentId}}/skills/1
+Content-Type: {{contentType}}
+
+{
+  "queueId": 999999,
+  "efficiencyCoefficient": 0.95,
+  "skillLevel": 5,
+  "isPrimary": true
+}
+
+###############################################################################
+# Delete agent skill
+###############################################################################
+
+### DELETE - Delete skill (change ID to one you want to delete)
+DELETE {{baseUrl}}/api/agents/{{agentId}}/skills/5
+
+### DELETE - Delete non-existent agent (should return 404)
+DELETE {{baseUrl}}/api/agents/999999/skills/1
+
+### DELETE - Delete non-existent skill (should return 404)
+DELETE {{baseUrl}}/api/agents/{{agentId}}/skills/999999
+
+### DELETE - Delete skill that doesn't belong to agent (should return 404)
+DELETE {{baseUrl}}/api/agents/1/skills/50
+
+###############################################################################
+# End of Agent Skill API Tests
+###############################################################################

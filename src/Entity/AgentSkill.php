@@ -54,9 +54,21 @@ class AgentSkill
         return $this->efficiencyCoefficient;
     }
 
+    public function setEfficiencyCoefficient(float $efficiencyCoefficient): static
+    {
+        $this->efficiencyCoefficient = $efficiencyCoefficient;
+        return $this;
+    }
+
     public function getSkillLevel(): ?int
     {
         return $this->skillLevel;
+    }
+
+    public function setSkillLevel(int $skillLevel): static
+    {
+        $this->skillLevel = $skillLevel;
+        return $this;
     }
 
     public function isPrimary(): ?bool
@@ -64,13 +76,31 @@ class AgentSkill
         return $this->isPrimary;
     }
 
+    public function setIsPrimary(bool $isPrimary): static
+    {
+        $this->isPrimary = $isPrimary;
+        return $this;
+    }
+
     public function getAgent(): ?Agent
     {
         return $this->agent;
     }
 
+    public function setAgent(Agent $agent): static
+    {
+        $this->agent = $agent;
+        return $this;
+    }
+
     public function getQueue(): ?Queue
     {
         return $this->queue;
+    }
+
+    public function setQueue(Queue $queue): static
+    {
+        $this->queue = $queue;
+        return $this;
     }
 }

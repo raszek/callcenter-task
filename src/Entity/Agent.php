@@ -51,6 +51,18 @@ class Agent
         return $this->lastName;
     }
 
+    public function setFirstName(string $firstName): static
+    {
+        $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function setLastName(string $lastName): static
+    {
+        $this->lastName = $lastName;
+        return $this;
+    }
+
     /**
      * @return Collection<int, AgentAvailability>
      */

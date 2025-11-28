@@ -1,0 +1,212 @@
+### Agent Availability API Manual Tests
+### Base URL - adjust port if needed
+@baseUrl = http://localhost:8000
+@contentType = application/json
+@agentId = 80
+
+###############################################################################
+# List agent availabilities
+###############################################################################
+
+### GET - List all availabilities for an agent
+GET {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Accept: {{contentType}}
+
+### GET - List availabilities for different agent
+GET {{baseUrl}}/api/agents/2/availabilities
+Accept: {{contentType}}
+
+### GET - List availabilities for non-existent agent (should return 404)
+GET {{baseUrl}}/api/agents/999999/availabilities
+Accept: {{contentType}}
+
+###############################################################################
+# Get single agent availability
+###############################################################################
+
+### GET - Get availability by ID
+GET {{baseUrl}}/api/agents/{{agentId}}/availabilities/1
+Accept: {{contentType}}
+
+### GET - Get non-existent availability (should return 404)
+GET {{baseUrl}}/api/agents/{{agentId}}/availabilities/999999
+Accept: {{contentType}}
+
+### GET - Get availability that doesn't belong to agent (should return 404)
+GET {{baseUrl}}/api/agents/1/availabilities/50
+Accept: {{contentType}}
+
+###############################################################################
+# Create agent availability
+###############################################################################
+
+### POST - Create new availability
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": true
+}
+
+### POST - Create another availability (different date)
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-02 09:00:00",
+  "endTime": "2025-12-02 17:00:00",
+  "isAvailable": true
+}
+
+### POST - Create unavailability (day off)
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-03 09:00:00",
+  "endTime": "2025-12-03 17:00:00",
+  "isAvailable": false
+}
+
+### POST - Create for non-existent agent (should return 404)
+POST {{baseUrl}}/api/agents/999999/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": true
+}
+
+### POST - Validation error - missing startTime
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": true
+}
+
+### POST - Validation error - missing endTime
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "isAvailable": true
+}
+
+### POST - Validation error - missing isAvailable
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "endTime": "2025-12-01 17:00:00"
+}
+
+### POST - Validation error - invalid datetime format
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "invalid-date",
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": true
+}
+
+### POST - Validation error - start time after end time
+POST {{baseUrl}}/api/agents/{{agentId}}/availabilities
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 17:00:00",
+  "endTime": "2025-12-01 09:00:00",
+  "isAvailable": true
+}
+
+###############################################################################
+# Update agent availability
+###############################################################################
+
+### PUT - Update availability (change ID as needed)
+PUT {{baseUrl}}/api/agents/{{agentId}}/availabilities/1
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 08:00:00",
+  "endTime": "2025-12-01 16:00:00",
+  "isAvailable": true
+}
+
+### PUT - Mark availability as unavailable
+PUT {{baseUrl}}/api/agents/{{agentId}}/availabilities/1
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": false
+}
+
+### PUT - Update non-existent agent (should return 404)
+PUT {{baseUrl}}/api/agents/999999/availabilities/1
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": true
+}
+
+### PUT - Update non-existent availability (should return 404)
+PUT {{baseUrl}}/api/agents/{{agentId}}/availabilities/999999
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": true
+}
+
+### PUT - Update availability that doesn't belong to agent (should return 404)
+PUT {{baseUrl}}/api/agents/1/availabilities/50
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 09:00:00",
+  "endTime": "2025-12-01 17:00:00",
+  "isAvailable": true
+}
+
+### PUT - Validation error - start time after end time
+PUT {{baseUrl}}/api/agents/{{agentId}}/availabilities/1
+Content-Type: {{contentType}}
+
+{
+  "startTime": "2025-12-01 17:00:00",
+  "endTime": "2025-12-01 09:00:00",
+  "isAvailable": true
+}
+
+###############################################################################
+# Delete agent availability
+###############################################################################
+
+### DELETE - Delete availability (change ID to one you want to delete)
+DELETE {{baseUrl}}/api/agents/{{agentId}}/availabilities/5
+
+### DELETE - Delete non-existent agent (should return 404)
+DELETE {{baseUrl}}/api/agents/999999/availabilities/1
+
+### DELETE - Delete non-existent availability (should return 404)
+DELETE {{baseUrl}}/api/agents/{{agentId}}/availabilities/999999
+
+### DELETE - Delete availability that doesn't belong to agent (should return 404)
+DELETE {{baseUrl}}/api/agents/1/availabilities/50
+
+###############################################################################
+# End of Agent Availability API Tests
+###############################################################################

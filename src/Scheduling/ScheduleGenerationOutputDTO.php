@@ -11,6 +11,7 @@ class ScheduleGenerationOutputDTO
      * @param ScheduleAssignmentDTO[] $assignments
      * @param array<string, mixed> $qualityMetrics
      * @param array<string, array<string, float>> $coverageByQueueAndHour
+     * @param string[] $warnings
      */
     public function __construct(
         public array $assignments,

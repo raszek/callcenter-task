@@ -421,12 +421,12 @@ class InitialScheduleGeneratorTest extends TestCase
         // Test with 15-minute granularity
         $input15 = ScheduleTestDataBuilder::createStandardInput($startDate, numAgents: 3, numQueues: 1, numDays: 1);
         $input15 = new ScheduleGenerationInputDTO(
-            agentAvailabilities: $input15->getAgentAvailabilities(),
-            agentSkills: $input15->getAgentSkills(),
-            demandForecasts: $input15->getDemandForecasts(),
-            scheduleStartDate: $input15->getScheduleStartDate(),
-            scheduleEndDate: $input15->getScheduleEndDate(),
-            constraints: $input15->getConstraints(),
+            agentAvailabilities: $input15->agentAvailabilities,
+            agentSkills: $input15->agentSkills,
+            demandForecasts: $input15->demandForecasts,
+            scheduleStartDate: $input15->scheduleStartDate,
+            scheduleEndDate: $input15->scheduleEndDate,
+            constraints: $input15->constraints,
             timeSlotGranularityMinutes: 15
         );
 
@@ -435,12 +435,12 @@ class InitialScheduleGeneratorTest extends TestCase
         // Test with 60-minute granularity
         $input60 = ScheduleTestDataBuilder::createStandardInput($startDate, numAgents: 3, numQueues: 1, numDays: 1);
         $input60 = new ScheduleGenerationInputDTO(
-            agentAvailabilities: $input60->getAgentAvailabilities(),
-            agentSkills: $input60->getAgentSkills(),
-            demandForecasts: $input60->getDemandForecasts(),
-            scheduleStartDate: $input60->getScheduleStartDate(),
-            scheduleEndDate: $input60->getScheduleEndDate(),
-            constraints: $input60->getConstraints(),
+            agentAvailabilities: $input60->agentAvailabilities,
+            agentSkills: $input60->agentSkills,
+            demandForecasts: $input60->demandForecasts,
+            scheduleStartDate: $input60->scheduleStartDate,
+            scheduleEndDate: $input60->scheduleEndDate,
+            constraints: $input60->constraints,
             timeSlotGranularityMinutes: 60
         );
 

@@ -38,9 +38,9 @@ class InitialScheduleGenerator
     {
         // Step 1: Initialize data structures
         $timeSlots = $this->generateTimeSlots($input);
-        $agentAvailabilityMap = $this->buildAvailabilityMap($input->getAgentAvailabilities());
-        $agentSkillMap = $this->buildSkillMap($input->getAgentSkills());
-        $demandMap = $this->buildDemandMap($input->getDemandForecasts());
+        $agentAvailabilityMap = $this->buildAvailabilityMap($input->agentAvailabilities);
+        $agentSkillMap = $this->buildSkillMap($input->agentSkills);
+        $demandMap = $this->buildDemandMap($input->demandForecasts);
 
         // Step 2: Execute optimization
         $assignments = $this->optimizeSchedule(
@@ -77,9 +77,9 @@ class InitialScheduleGenerator
     private function generateTimeSlots(ScheduleGenerationInputDTO $input): array
     {
         $slots = [];
-        $current = $input->getScheduleStartDate();
-        $end = $input->getScheduleEndDate();
-        $interval = new \DateInterval('PT' . $input->getTimeSlotGranularityMinutes() . 'M');
+        $current = $input->scheduleStartDate;
+        $end = $input->scheduleEndDate;
+        $interval = new \DateInterval('PT' . $input->timeSlotGranularityMinutes . 'M');
 
         while ($current < $end) {
             $slots[] = $current;
@@ -181,7 +181,7 @@ class InitialScheduleGenerator
         $agentDailyHours = []; // Track hours per agent per day
         $agentCurrentShift = []; // Track current shift start time
 
-        $granularityMinutes = $input->getTimeSlotGranularityMinutes();
+        $granularityMinutes = $input->timeSlotGranularityMinutes;
         $slotHours = $granularityMinutes / 60;
 
         // Group time slots by queue and process demand
@@ -307,7 +307,7 @@ class InitialScheduleGenerator
 
             // Check daily hours limit
             $currentDailyHours = $agentDailyHours[$agentId][$day] ?? 0;
-            $slotHours = $input->getTimeSlotGranularityMinutes() / 60;
+            $slotHours = $input->timeSlotGranularityMinutes / 60;
 
             if ($currentDailyHours + $slotHours > $maxHoursPerDay) {
                 continue;

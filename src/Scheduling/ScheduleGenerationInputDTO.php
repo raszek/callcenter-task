@@ -11,6 +11,8 @@ class ScheduleGenerationInputDTO
      * @param AgentAvailabilityDTO[] $agentAvailabilities
      * @param AgentSkillDTO[] $agentSkills
      * @param DemandForecastDTO[] $demandForecasts
+     * @param \DateTimeImmutable $scheduleStartDate
+     * @param \DateTimeImmutable $scheduleEndDate
      * @param array<string, mixed> $constraints
      * @param int $timeSlotGranularityMinutes
      */

@@ -53,7 +53,7 @@ class HistoricalCallDataFixtures extends Fixture implements DependentFixtureInte
 
                     // Flush and clear to free memory
                     $manager->flush();
-                    $manager->clear(HistoricalCallData::class);
+                    $manager->clear();
                 }
             }
 

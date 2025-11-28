@@ -45,11 +45,11 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Expected average: (50 + 48 + 52 + 46) / 4 = 49
-        $this->assertEquals(49.0, $result->getForecastedCalls());
+        $this->assertEquals(49.0, $result->forecastedCalls);
         $this->assertEquals(49, $result->getForecastedCallsRounded());
-        $this->assertEquals(300.0, $result->getAverageHandleTimeSeconds());
-        $this->assertEquals(4, $result->getDataPointsUsed());
-        $this->assertEquals('sales', $result->getQueueName());
+        $this->assertEquals(300.0, $result->averageHandleTimeSeconds);
+        $this->assertEquals(4, $result->dataPointsUsed);
+        $this->assertEquals('sales', $result->queueName);
     }
 
     /**
@@ -82,8 +82,8 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Should only use Wednesday data: (50+50+50+50)/4 = 50
-        $this->assertEquals(50.0, $result->getForecastedCalls());
-        $this->assertEquals(4, $result->getDataPointsUsed(), 'Should only use Wednesday data');
+        $this->assertEquals(50.0, $result->forecastedCalls);
+        $this->assertEquals(4, $result->dataPointsUsed, 'Should only use Wednesday data');
     }
 
     /**
@@ -116,8 +116,8 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Should only use 09:00 data
-        $this->assertEquals(50.0, $result->getForecastedCalls());
-        $this->assertEquals(4, $result->getDataPointsUsed());
+        $this->assertEquals(50.0, $result->forecastedCalls);
+        $this->assertEquals(4, $result->dataPointsUsed);
     }
 
     /**
@@ -150,8 +150,8 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Should only use sales queue data
-        $this->assertEquals(50.0, $result->getForecastedCalls());
-        $this->assertEquals(4, $result->getDataPointsUsed());
+        $this->assertEquals(50.0, $result->forecastedCalls);
+        $this->assertEquals(4, $result->dataPointsUsed);
     }
 
     /**
@@ -185,8 +185,8 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Should only use last 4 weeks
-        $this->assertEquals(50.0, $result->getForecastedCalls());
-        $this->assertEquals(4, $result->getDataPointsUsed());
+        $this->assertEquals(50.0, $result->forecastedCalls);
+        $this->assertEquals(4, $result->dataPointsUsed);
     }
 
     /**
@@ -217,8 +217,8 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Should only use past data, excluding future
-        $this->assertEquals(50.0, $result->getForecastedCalls());
-        $this->assertEquals(4, $result->getDataPointsUsed());
+        $this->assertEquals(50.0, $result->forecastedCalls);
+        $this->assertEquals(4, $result->dataPointsUsed);
     }
 
     /**
@@ -257,8 +257,8 @@ class MovingAverageForecasterTest extends TestCase
         // Raw FTE: 18,000 / 1,530 = 11.76
         // With shrinkage: 11.76 / 0.75 = 15.69
 
-        $this->assertGreaterThan(15.0, $result->getRequiredFTE());
-        $this->assertLessThan(16.0, $result->getRequiredFTE());
+        $this->assertGreaterThan(15.0, $result->requiredFTE);
+        $this->assertLessThan(16.0, $result->requiredFTE);
         $this->assertEquals(16, $result->getRequiredAgents()); // Ceiling
     }
 
@@ -289,9 +289,9 @@ class MovingAverageForecasterTest extends TestCase
 
         $result = $this->forecaster->forecast($request);
 
-        $this->assertEquals(50.0, $result->getForecastedCalls());
-        $this->assertGreaterThan(7.0, $result->getStandardDeviation());
-        $this->assertLessThan(7.2, $result->getStandardDeviation());
+        $this->assertEquals(50.0, $result->forecastedCalls);
+        $this->assertGreaterThan(7.0, $result->standardDeviation);
+        $this->assertLessThan(7.2, $result->standardDeviation);
     }
 
     /**
@@ -317,8 +317,8 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Confidence intervals should be around the required FTE
-        $this->assertLessThan($result->getRequiredFTE(), $result->getConfidenceLowerFTE());
-        $this->assertGreaterThan($result->getRequiredFTE(), $result->getConfidenceUpperFTE());
+        $this->assertLessThan($result->requiredFTE, $result->confidenceLowerFTE);
+        $this->assertGreaterThan($result->requiredFTE, $result->confidenceUpperFTE);
         $this->assertGreaterThan(0, $result->getConfidenceIntervalWidth());
     }
 
@@ -337,10 +337,10 @@ class MovingAverageForecasterTest extends TestCase
 
         $result = $this->forecaster->forecast($request);
 
-        $this->assertEquals(0.0, $result->getForecastedCalls());
-        $this->assertEquals(0.0, $result->getRequiredFTE());
-        $this->assertEquals(0, $result->getDataPointsUsed());
-        $this->assertArrayHasKey('warning', $result->getMetadata());
+        $this->assertEquals(0.0, $result->forecastedCalls);
+        $this->assertEquals(0.0, $result->requiredFTE);
+        $this->assertEquals(0, $result->dataPointsUsed);
+        $this->assertArrayHasKey('warning', $result->metadata);
     }
 
     /**
@@ -365,8 +365,8 @@ class MovingAverageForecasterTest extends TestCase
 
         $result = $this->forecaster->forecast($request);
 
-        $this->assertEquals(0.0, $result->getForecastedCalls());
-        $this->assertEquals(0, $result->getDataPointsUsed());
+        $this->assertEquals(0.0, $result->forecastedCalls);
+        $this->assertEquals(0, $result->dataPointsUsed);
     }
 
     /**
@@ -394,9 +394,9 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Should still calculate with available data
-        $this->assertEquals(50.0, $result->getForecastedCalls());
-        $this->assertEquals(1, $result->getDataPointsUsed());
-        $this->assertEquals(0.0, $result->getStandardDeviation()); // Can't calc with n=1
+        $this->assertEquals(50.0, $result->forecastedCalls);
+        $this->assertEquals(1, $result->dataPointsUsed);
+        $this->assertEquals(0.0, $result->standardDeviation); // Can't calc with n=1
     }
 
     /**
@@ -419,9 +419,9 @@ class MovingAverageForecasterTest extends TestCase
         $results = $this->forecaster->forecastMultiple($requests);
 
         $this->assertCount(3, $results);
-        $this->assertEquals(9, (int) $results[0]->getStartTime()->format('H'));
-        $this->assertEquals(10, (int) $results[1]->getStartTime()->format('H'));
-        $this->assertEquals(11, (int) $results[2]->getStartTime()->format('H'));
+        $this->assertEquals(9, (int) $results[0]->startTime->format('H'));
+        $this->assertEquals(10, (int) $results[1]->startTime->format('H'));
+        $this->assertEquals(11, (int) $results[2]->startTime->format('H'));
     }
 
     /**
@@ -444,10 +444,10 @@ class MovingAverageForecasterTest extends TestCase
 
         // Should have 4 slots: 08:00, 08:30, 09:00, 09:30
         $this->assertCount(4, $requests);
-        $this->assertEquals('08:00', $requests[0]->getTargetDatetime()->format('H:i'));
-        $this->assertEquals('08:30', $requests[1]->getTargetDatetime()->format('H:i'));
-        $this->assertEquals('09:00', $requests[2]->getTargetDatetime()->format('H:i'));
-        $this->assertEquals('09:30', $requests[3]->getTargetDatetime()->format('H:i'));
+        $this->assertEquals('08:00', $requests[0]->targetDatetime->format('H:i'));
+        $this->assertEquals('08:30', $requests[1]->targetDatetime->format('H:i'));
+        $this->assertEquals('09:00', $requests[2]->targetDatetime->format('H:i'));
+        $this->assertEquals('09:30', $requests[3]->targetDatetime->format('H:i'));
     }
 
     /**
@@ -474,9 +474,9 @@ class MovingAverageForecasterTest extends TestCase
         $demandForecast = $result->toDemandForecastDTO();
 
         $this->assertInstanceOf(\App\Scheduling\DemandForecastDTO::class, $demandForecast);
-        $this->assertEquals('sales', $demandForecast->getQueueName());
-        $this->assertEquals(49, $demandForecast->getForecastedCalls());
-        $this->assertEquals($result->getRequiredFTE(), $demandForecast->getRequiredFTE());
+        $this->assertEquals('sales', $demandForecast->queueName);
+        $this->assertEquals(49, $demandForecast->forecastedCalls);
+        $this->assertEquals($result->requiredFTE, $demandForecast->requiredFTE);
     }
 
     /**
@@ -514,11 +514,11 @@ class MovingAverageForecasterTest extends TestCase
         $result60 = $this->forecaster->forecast($request60);
 
         // Same forecast, but different FTE due to time slot duration
-        $this->assertEquals($result15->getForecastedCalls(), $result60->getForecastedCalls());
-        $this->assertNotEquals($result15->getRequiredFTE(), $result60->getRequiredFTE());
+        $this->assertEquals($result15->forecastedCalls, $result60->forecastedCalls);
+        $this->assertNotEquals($result15->requiredFTE, $result60->requiredFTE);
 
         // Longer time slots should require fewer FTE per slot
-        $this->assertLessThan($result15->getRequiredFTE(), $result60->getRequiredFTE());
+        $this->assertLessThan($result15->requiredFTE, $result60->requiredFTE);
     }
 
     /**
@@ -543,7 +543,7 @@ class MovingAverageForecasterTest extends TestCase
         );
 
         $result = $this->forecaster->forecast($request);
-        $metadata = $result->getMetadata();
+        $metadata = $result->metadata;
 
         $this->assertArrayHasKey('algorithm', $metadata);
         $this->assertEquals('moving_average', $metadata['algorithm']);
@@ -576,7 +576,7 @@ class MovingAverageForecasterTest extends TestCase
         $result = $this->forecaster->forecast($request);
 
         // Average handle time: (300 + 320 + 280 + 340) / 4 = 310
-        $this->assertEquals(310.0, $result->getAverageHandleTimeSeconds());
+        $this->assertEquals(310.0, $result->averageHandleTimeSeconds);
     }
 
     /**
@@ -615,8 +615,8 @@ class MovingAverageForecasterTest extends TestCase
 
         // Higher shrinkage should require more FTE
         $this->assertGreaterThan(
-            $resultLowShrinkage->getRequiredFTE(),
-            $resultHighShrinkage->getRequiredFTE()
+            $resultLowShrinkage->requiredFTE,
+            $resultHighShrinkage->requiredFTE
         );
     }
 }

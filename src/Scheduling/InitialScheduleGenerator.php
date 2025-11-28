@@ -26,12 +26,9 @@ namespace App\Scheduling;
  */
 class InitialScheduleGenerator
 {
-    private const DEFAULT_MIN_HOURS_PER_DAY = 4;
     private const DEFAULT_MAX_HOURS_PER_DAY = 8;
     private const DEFAULT_MAX_CONSECUTIVE_HOURS = 6;
     private const DEFAULT_OVERSTAFFING_THRESHOLD = 1.2;
-    private const DEFAULT_UNDERSTAFFING_PENALTY_WEIGHT = 10.0;
-    private const DEFAULT_OVERSTAFFING_PENALTY_WEIGHT = 2.0;
     private const DEFAULT_EFFICIENCY_WEIGHT = 3.0;
 
     /**
@@ -75,6 +72,7 @@ class InitialScheduleGenerator
      * Generate time slots for the entire schedule period
      *
      * @return array<int, \DateTimeImmutable>
+     * @throws \Exception
      */
     private function generateTimeSlots(ScheduleGenerationInputDTO $input): array
     {
@@ -92,6 +90,8 @@ class InitialScheduleGenerator
     }
 
     /**
+     * @param AgentAvailabilityDTO[] $availabilities
+     *
      * Build availability lookup map: [agentId][timestamp] => bool
      */
     private function buildAvailabilityMap(array $availabilities): array
@@ -99,16 +99,16 @@ class InitialScheduleGenerator
         $map = [];
 
         foreach ($availabilities as $availability) {
-            $agentId = $availability->getAgentId();
+            $agentId = $availability->agentId;
             if (!isset($map[$agentId])) {
                 $map[$agentId] = [];
             }
 
             // Store availability for the time range
             $map[$agentId][] = [
-                'start' => $availability->getStartTime(),
-                'end' => $availability->getEndTime(),
-                'available' => $availability->isAvailable()
+                'start' => $availability->startTime,
+                'end' => $availability->endTime,
+                'available' => $availability->isAvailable
             ];
         }
 
@@ -117,14 +117,16 @@ class InitialScheduleGenerator
 
     /**
      * Build skill lookup map: [agentId][queueName] => AgentSkillDTO
+     *
+     * @param AgentSkillDTO[] $skills
      */
     private function buildSkillMap(array $skills): array
     {
         $map = [];
 
         foreach ($skills as $skill) {
-            $agentId = $skill->getAgentId();
-            $queueName = $skill->getQueueName();
+            $agentId = $skill->agentId;
+            $queueName = $skill->queueName;
 
             if (!isset($map[$agentId])) {
                 $map[$agentId] = [];
@@ -138,19 +140,21 @@ class InitialScheduleGenerator
 
     /**
      * Build demand lookup map: [queueName][timestamp] => DemandForecastDTO
+     *
+     * @param DemandForecastDTO[] $forecasts
      */
     private function buildDemandMap(array $forecasts): array
     {
         $map = [];
 
         foreach ($forecasts as $forecast) {
-            $queueName = $forecast->getQueueName();
+            $queueName = $forecast->queueName;
 
             if (!isset($map[$queueName])) {
                 $map[$queueName] = [];
             }
 
-            $key = $forecast->getStartTime()->getTimestamp();
+            $key = $forecast->startTime->getTimestamp();
             $map[$queueName][$key] = $forecast;
         }
 
@@ -180,11 +184,6 @@ class InitialScheduleGenerator
         $granularityMinutes = $input->getTimeSlotGranularityMinutes();
         $slotHours = $granularityMinutes / 60;
 
-        // Get constraints
-        $minHoursPerDay = $input->getConstraint('min_hours_per_day', self::DEFAULT_MIN_HOURS_PER_DAY);
-        $maxHoursPerDay = $input->getConstraint('max_hours_per_day', self::DEFAULT_MAX_HOURS_PER_DAY);
-        $maxConsecutiveHours = $input->getConstraint('max_consecutive_hours', self::DEFAULT_MAX_CONSECUTIVE_HOURS);
-
         // Group time slots by queue and process demand
         foreach ($timeSlots as $timeSlot) {
             foreach ($demandMap as $queueName => $demandSlots) {
@@ -194,8 +193,11 @@ class InitialScheduleGenerator
                     continue;
                 }
 
+                /**
+                 * @var DemandForecastDTO $demand
+                 */
                 $demand = $demandSlots[$timestamp];
-                $requiredFTE = $demand->getRequiredFTE();
+                $requiredFTE = $demand->requiredFTE;
 
                 // Calculate how many agents needed for this slot
                 $agentsNeeded = (int) ceil($requiredFTE / $slotHours);
@@ -222,6 +224,10 @@ class InitialScheduleGenerator
                     }
 
                     $agentId = $candidate['agentId'];
+
+                    /**
+                     * @var AgentSkillDTO $skill
+                     */
                     $skill = $candidate['skill'];
 
                     // Create assignment
@@ -232,8 +238,8 @@ class InitialScheduleGenerator
                         queueName: $queueName,
                         startTime: $timeSlot,
                         endTime: $endTime,
-                        efficiencyScore: $skill->getEfficiencyCoefficient(),
-                        assignmentType: $skill->isPrimary() ? 'primary' : 'secondary'
+                        efficiencyScore: $skill->efficiencyCoefficient,
+                        assignmentType: $skill->isPrimary ? 'primary' : 'secondary'
                     );
 
                     $assignments[] = $assignment;
@@ -264,9 +270,7 @@ class InitialScheduleGenerator
         }
 
         // Post-process: merge consecutive assignments into longer shifts
-        $assignments = $this->mergeConsecutiveAssignments($assignments);
-
-        return $assignments;
+        return $this->mergeConsecutiveAssignments($assignments);
     }
 
     /**
@@ -368,10 +372,10 @@ class InitialScheduleGenerator
         float $efficiencyWeight
     ): float {
         // Base efficiency score
-        $efficiencyScore = $skill->getEfficiencyCoefficient() * $efficiencyWeight;
+        $efficiencyScore = $skill->efficiencyCoefficient * $efficiencyWeight;
 
         // Skill level multiplier (prefer experts)
-        $skillMultiplier = match($skill->getSkillLevel()) {
+        $skillMultiplier = match($skill->skillLevel) {
             3 => 1.5,  // Expert
             2 => 1.0,  // Proficient
             1 => 0.7,  // Capable
@@ -379,7 +383,7 @@ class InitialScheduleGenerator
         };
 
         // Primary queue bonus
-        $primaryBonus = $skill->isPrimary() ? 1.2 : 1.0;
+        $primaryBonus = $skill->isPrimary ? 1.2 : 1.0;
 
         // Fatigue factor (reduce score for agents already working many hours)
         $fatigueFactor = 1.0 - ($consecutiveHours / 12.0); // Decreases with consecutive hours
@@ -392,13 +396,15 @@ class InitialScheduleGenerator
 
     /**
      * Merge consecutive assignments into longer continuous shifts
+     *
+     * @param ScheduleAssignmentDTO[] $assignments
      */
     private function mergeConsecutiveAssignments(array $assignments): array
     {
         // Group by agent and queue
         $grouped = [];
         foreach ($assignments as $assignment) {
-            $key = $assignment->getAgentId() . '_' . $assignment->getQueueName();
+            $key = $assignment->agentId . '_' . $assignment->queueName;
             if (!isset($grouped[$key])) {
                 $grouped[$key] = [];
             }
@@ -409,7 +415,7 @@ class InitialScheduleGenerator
 
         foreach ($grouped as $group) {
             // Sort by start time
-            usort($group, fn($a, $b) => $a->getStartTime() <=> $b->getStartTime());
+            usort($group, fn($a, $b) => $a->startTime <=> $b->startTime);
 
             $currentShift = null;
 
@@ -420,15 +426,15 @@ class InitialScheduleGenerator
                 }
 
                 // Check if consecutive (end time of current = start time of next)
-                if ($currentShift->getEndTime() == $assignment->getStartTime()) {
+                if ($currentShift->endTime == $assignment->startTime) {
                     // Merge: extend end time
                     $currentShift = new ScheduleAssignmentDTO(
-                        agentId: $currentShift->getAgentId(),
-                        queueName: $currentShift->getQueueName(),
-                        startTime: $currentShift->getStartTime(),
-                        endTime: $assignment->getEndTime(),
-                        efficiencyScore: $currentShift->getEfficiencyScore(),
-                        assignmentType: $currentShift->getAssignmentType()
+                        agentId: $currentShift->agentId,
+                        queueName: $currentShift->queueName,
+                        startTime: $currentShift->startTime,
+                        endTime: $assignment->endTime,
+                        efficiencyScore: $currentShift->efficiencyScore,
+                        assignmentType: $currentShift->assignmentType,
                     );
                 } else {
                     // Not consecutive, save current and start new
@@ -454,9 +460,9 @@ class InitialScheduleGenerator
         $coverage = [];
 
         foreach ($assignments as $assignment) {
-            $queue = $assignment->getQueueName();
-            $start = $assignment->getStartTime();
-            $end = $assignment->getEndTime();
+            $queue = $assignment->queueName;
+            $start = $assignment->startTime;
+            $end = $assignment->endTime;
 
             if (!isset($coverage[$queue])) {
                 $coverage[$queue] = [];
@@ -471,7 +477,7 @@ class InitialScheduleGenerator
                     $coverage[$queue][$hourKey] = 0;
                 }
 
-                $coverage[$queue][$hourKey] += $assignment->getEfficiencyScore();
+                $coverage[$queue][$hourKey] += $assignment->efficiencyScore;
 
                 $current = $current->add(new \DateInterval('PT1H'));
             }
@@ -486,7 +492,6 @@ class InitialScheduleGenerator
     private function calculateQualityMetrics(
         array $assignments,
         array $demandMap,
-        ScheduleGenerationInputDTO $input
     ): array {
         $metrics = [
             'total_assignments' => count($assignments),
@@ -504,9 +509,9 @@ class InitialScheduleGenerator
         foreach ($assignments as $assignment) {
             $hours = $assignment->getDurationInHours();
             $metrics['total_agent_hours'] += $hours;
-            $totalEfficiency += $assignment->getEfficiencyScore();
+            $totalEfficiency += $assignment->efficiencyScore;
 
-            $agentId = $assignment->getAgentId();
+            $agentId = $assignment->agentId;
             if (!isset($agentHours[$agentId])) {
                 $agentHours[$agentId] = 0;
             }
@@ -534,9 +539,9 @@ class InitialScheduleGenerator
         foreach ($demandMap as $queueName => $slots) {
             foreach ($slots as $demand) {
                 $totalSlots++;
-                $hourKey = $demand->getStartTime()->format('Y-m-d H:00');
+                $hourKey = $demand->startTime->format('Y-m-d H:00');
                 $actualCoverage = $coverage[$queueName][$hourKey] ?? 0;
-                $required = $demand->getRequiredFTE();
+                $required = $demand->requiredFTE;
 
                 if ($actualCoverage >= $required * 0.9) { // 90% threshold
                     $coveredSlots++;
@@ -571,9 +576,9 @@ class InitialScheduleGenerator
         // Check for critical understaffing
         foreach ($demandMap as $queueName => $slots) {
             foreach ($slots as $demand) {
-                $hourKey = $demand->getStartTime()->format('Y-m-d H:00');
+                $hourKey = $demand->startTime->format('Y-m-d H:00');
                 $actualCoverage = $coverage[$queueName][$hourKey] ?? 0;
-                $required = $demand->getRequiredFTE();
+                $required = $demand->requiredFTE;
 
                 if ($actualCoverage < $required * 0.7) { // Less than 70% coverage
                     $warnings[] = sprintf(
@@ -598,8 +603,8 @@ class InitialScheduleGenerator
         // Check for agent overload
         $agentDailyHours = [];
         foreach ($assignments as $assignment) {
-            $agentId = $assignment->getAgentId();
-            $day = $assignment->getStartTime()->format('Y-m-d');
+            $agentId = $assignment->agentId;
+            $day = $assignment->startTime->format('Y-m-d');
             $key = $agentId . '_' . $day;
 
             if (!isset($agentDailyHours[$key])) {

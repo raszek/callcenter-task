@@ -5,76 +5,21 @@ namespace App\Forecasting;
 /**
  * Result DTO containing forecast calculations
  */
-class ForecastResultDTO
+readonly class ForecastResultDTO
 {
     public function __construct(
-        private string $queueName,
-        private \DateTimeImmutable $startTime,
-        private \DateTimeImmutable $endTime,
-        private float $forecastedCalls,
-        private float $averageHandleTimeSeconds,
-        private float $requiredFTE,
-        private float $confidenceLowerFTE,
-        private float $confidenceUpperFTE,
-        private int $dataPointsUsed,
-        private float $standardDeviation,
-        private array $metadata = []
+        public string $queueName,
+        public \DateTimeImmutable $startTime,
+        public \DateTimeImmutable $endTime,
+        public float $forecastedCalls,
+        public float $averageHandleTimeSeconds,
+        public float $requiredFTE,
+        public float $confidenceLowerFTE,
+        public float $confidenceUpperFTE,
+        public int $dataPointsUsed,
+        public float $standardDeviation,
+        public array $metadata = []
     ) {
-    }
-
-    public function getQueueName(): string
-    {
-        return $this->queueName;
-    }
-
-    public function getStartTime(): \DateTimeImmutable
-    {
-        return $this->startTime;
-    }
-
-    public function getEndTime(): \DateTimeImmutable
-    {
-        return $this->endTime;
-    }
-
-    public function getForecastedCalls(): float
-    {
-        return $this->forecastedCalls;
-    }
-
-    public function getAverageHandleTimeSeconds(): float
-    {
-        return $this->averageHandleTimeSeconds;
-    }
-
-    public function getRequiredFTE(): float
-    {
-        return $this->requiredFTE;
-    }
-
-    public function getConfidenceLowerFTE(): float
-    {
-        return $this->confidenceLowerFTE;
-    }
-
-    public function getConfidenceUpperFTE(): float
-    {
-        return $this->confidenceUpperFTE;
-    }
-
-    public function getDataPointsUsed(): int
-    {
-        return $this->dataPointsUsed;
-    }
-
-    public function getStandardDeviation(): float
-    {
-        return $this->standardDeviation;
-    }
-
-    public function getMetadata(): array
-    {
-        return $this->metadata;
     }
 
     /**

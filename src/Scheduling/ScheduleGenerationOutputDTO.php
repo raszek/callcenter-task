@@ -13,36 +13,12 @@ class ScheduleGenerationOutputDTO
      * @param array<string, array<string, float>> $coverageByQueueAndHour
      */
     public function __construct(
-        private array $assignments,
-        private array $qualityMetrics = [],
-        private array $coverageByQueueAndHour = [],
-        private bool $isFeasible = true,
+        public array $assignments,
+        public array $qualityMetrics = [],
+        public array $coverageByQueueAndHour = [],
+        public bool $isFeasible = true,
         private array $warnings = []
     ) {
-    }
-
-    /**
-     * @return ScheduleAssignmentDTO[]
-     */
-    public function getAssignments(): array
-    {
-        return $this->assignments;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getQualityMetrics(): array
-    {
-        return $this->qualityMetrics;
-    }
-
-    /**
-     * @return array<string, array<string, float>>
-     */
-    public function getCoverageByQueueAndHour(): array
-    {
-        return $this->coverageByQueueAndHour;
     }
 
     public function isFeasible(): bool

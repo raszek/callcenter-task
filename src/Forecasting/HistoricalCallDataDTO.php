@@ -5,34 +5,14 @@ namespace App\Forecasting;
 /**
  * Represents historical call data for a specific time slot
  */
-class HistoricalCallDataDTO
+readonly class HistoricalCallDataDTO
 {
     public function __construct(
-        private string $queueName,
-        private \DateTimeImmutable $datetime,
-        private int $callCount,
-        private float $averageHandleTimeSeconds
+        public string $queueName,
+        public \DateTimeImmutable $datetime,
+        public int $callCount,
+        public float $averageHandleTimeSeconds
     ) {
-    }
-
-    public function getQueueName(): string
-    {
-        return $this->queueName;
-    }
-
-    public function getDatetime(): \DateTimeImmutable
-    {
-        return $this->datetime;
-    }
-
-    public function getCallCount(): int
-    {
-        return $this->callCount;
-    }
-
-    public function getAverageHandleTimeSeconds(): float
-    {
-        return $this->averageHandleTimeSeconds;
     }
 
     /**

@@ -32,10 +32,10 @@ class InitialScheduleGeneratorTest extends TestCase
 
         $output = $this->generator->generate($input);
 
-        $this->assertNotEmpty($output->getAssignments(), 'Should generate assignments');
+        $this->assertNotEmpty($output->assignments, 'Should generate assignments');
         $this->assertFalse($output->isFeasible(), 'Schedule should not be feasible');
-        $this->assertIsArray($output->getQualityMetrics(), 'Should have quality metrics');
-        $this->assertIsArray($output->getCoverageByQueueAndHour(), 'Should have coverage data');
+        $this->assertIsArray($output->qualityMetrics, 'Should have quality metrics');
+        $this->assertIsArray($output->coverageByQueueAndHour, 'Should have coverage data');
     }
 
     /**
@@ -69,21 +69,21 @@ class InitialScheduleGeneratorTest extends TestCase
         );
 
         $output = $this->generator->generate($input);
-        $assignments = $output->getAssignments();
+        $assignments = $output->assignments;
 
         // Verify Agent 1 only works before 12:00
         foreach ($assignments as $assignment) {
-            if ($assignment->getAgentId() === 1) {
+            if ($assignment->agentId === 1) {
                 $this->assertEquals(
                     12,
-                    (int) $assignment->getEndTime()->format('H'),
+                    (int) $assignment->endTime->format('H'),
                     'Agent 1 should only work before 12:00'
                 );
             }
-            if ($assignment->getAgentId() === 2) {
+            if ($assignment->agentId === 2) {
                 $this->assertGreaterThanOrEqual(
                     12,
-                    (int) $assignment->getStartTime()->format('H'),
+                    (int) $assignment->startTime->format('H'),
                     'Agent 2 should only work after 12:00'
                 );
             }
@@ -125,12 +125,12 @@ class InitialScheduleGeneratorTest extends TestCase
         $output = $this->generator->generate($input);
 
         // Verify agents only assigned to their queues
-        foreach ($output->getAssignments() as $assignment) {
-            if ($assignment->getAgentId() === 1) {
-                $this->assertEquals('sales', $assignment->getQueueName(), 'Agent 1 should only handle sales');
+        foreach ($output->assignments as $assignment) {
+            if ($assignment->agentId === 1) {
+                $this->assertEquals('sales', $assignment->queueName, 'Agent 1 should only handle sales');
             }
-            if ($assignment->getAgentId() === 2) {
-                $this->assertEquals('support', $assignment->getQueueName(), 'Agent 2 should only handle support');
+            if ($assignment->agentId === 2) {
+                $this->assertEquals('support', $assignment->queueName, 'Agent 2 should only handle support');
             }
         }
     }
@@ -169,8 +169,8 @@ class InitialScheduleGeneratorTest extends TestCase
 
         // Calculate total hours for agent 1
         $totalHours = 0;
-        foreach ($output->getAssignments() as $assignment) {
-            if ($assignment->getAgentId() === 1) {
+        foreach ($output->assignments as $assignment) {
+            if ($assignment->agentId === 1) {
                 $totalHours += $assignment->getDurationInHours();
             }
         }
@@ -206,9 +206,9 @@ class InitialScheduleGeneratorTest extends TestCase
 
         $output = $this->generator->generate($input);
 
-        $this->assertNotEmpty($output->getAssignments());
-        $assignment = $output->getAssignments()[0];
-        $this->assertEquals(1.5, $assignment->getEfficiencyScore(), 'Should capture efficiency coefficient');
+        $this->assertNotEmpty($output->assignments);
+        $assignment = $output->assignments[0];
+        $this->assertEquals(1.5, $assignment->efficiencyScore, 'Should capture efficiency coefficient');
     }
 
     /**
@@ -220,7 +220,7 @@ class InitialScheduleGeneratorTest extends TestCase
         $input = ScheduleTestDataBuilder::createStandardInput($startDate, numAgents: 5, numQueues: 2, numDays: 1);
 
         $output = $this->generator->generate($input);
-        $metrics = $output->getQualityMetrics();
+        $metrics = $output->qualityMetrics;
 
         $this->assertArrayHasKey('total_assignments', $metrics);
         $this->assertArrayHasKey('total_agent_hours', $metrics);
@@ -244,7 +244,7 @@ class InitialScheduleGeneratorTest extends TestCase
         $input = ScheduleTestDataBuilder::createStandardInput($startDate, numAgents: 5, numQueues: 1, numDays: 1);
 
         $output = $this->generator->generate($input);
-        $coverage = $output->getCoverageByQueueAndHour();
+        $coverage = $output->coverageByQueueAndHour;
 
         $this->assertNotEmpty($coverage, 'Should have coverage data');
         $this->assertArrayHasKey('queue_1', $coverage, 'Should have coverage for queue_1');
@@ -316,8 +316,8 @@ class InitialScheduleGeneratorTest extends TestCase
         $output = $this->generator->generate($input);
 
         $queuesInSchedule = [];
-        foreach ($output->getAssignments() as $assignment) {
-            $queuesInSchedule[$assignment->getQueueName()] = true;
+        foreach ($output->assignments as $assignment) {
+            $queuesInSchedule[$assignment->queueName] = true;
         }
 
         $this->assertGreaterThanOrEqual(2, count($queuesInSchedule), 'Should have assignments for multiple queues');
@@ -334,8 +334,8 @@ class InitialScheduleGeneratorTest extends TestCase
         $output = $this->generator->generate($input);
 
         $daysInSchedule = [];
-        foreach ($output->getAssignments() as $assignment) {
-            $day = $assignment->getStartTime()->format('Y-m-d');
+        foreach ($output->assignments as $assignment) {
+            $day = $assignment->startTime->format('Y-m-d');
             $daysInSchedule[$day] = true;
         }
 
@@ -351,7 +351,7 @@ class InitialScheduleGeneratorTest extends TestCase
         $input = ScheduleTestDataBuilder::createStandardInput($startDate, numAgents: 5, numQueues: 1, numDays: 1);
 
         $output = $this->generator->generate($input);
-        $metrics = $output->getQualityMetrics();
+        $metrics = $output->qualityMetrics;
 
         $this->assertArrayHasKey('fairness_index', $metrics);
         $this->assertGreaterThan(0, $metrics['fairness_index']);
@@ -376,7 +376,7 @@ class InitialScheduleGeneratorTest extends TestCase
 
         $output = $this->generator->generate($input);
 
-        $this->assertEmpty($output->getAssignments(), 'Should have no assignments with no agents');
+        $this->assertEmpty($output->assignments, 'Should have no assignments with no agents');
         $this->assertFalse($output->isFeasible(), 'Should be infeasible with no agents');
         $this->assertNotEmpty($output->getWarnings(), 'Should have warnings');
     }
@@ -407,7 +407,7 @@ class InitialScheduleGeneratorTest extends TestCase
 
         $output = $this->generator->generate($input);
 
-        $this->assertEmpty($output->getAssignments(), 'Should have no assignments with no demand');
+        $this->assertEmpty($output->assignments, 'Should have no assignments with no demand');
         $this->assertTrue($output->isFeasible(), 'Should be feasible (nothing to schedule)');
     }
 
@@ -446,8 +446,8 @@ class InitialScheduleGeneratorTest extends TestCase
 
         $output60 = $this->generator->generate($input60);
 
-        $this->assertNotEmpty($output15->getAssignments());
-        $this->assertNotEmpty($output60->getAssignments());
+        $this->assertNotEmpty($output15->assignments);
+        $this->assertNotEmpty($output60->assignments);
     }
 
     /**
@@ -478,7 +478,7 @@ class InitialScheduleGeneratorTest extends TestCase
         );
 
         $output = $this->generator->generate($input);
-        $assignments = $output->getAssignments();
+        $assignments = $output->assignments;
 
         // Should have fewer assignments than time slots due to merging
         $this->assertLessThanOrEqual(8, count($assignments), 'Consecutive slots should be merged');
@@ -530,11 +530,11 @@ class InitialScheduleGeneratorTest extends TestCase
         $hasPrimary = false;
         $hasSecondary = false;
 
-        foreach ($output->getAssignments() as $assignment) {
-            if ($assignment->getAssignmentType() === 'primary') {
+        foreach ($output->assignments as $assignment) {
+            if ($assignment->assignmentType === 'primary') {
                 $hasPrimary = true;
             }
-            if ($assignment->getAssignmentType() === 'secondary') {
+            if ($assignment->assignmentType === 'secondary') {
                 $hasSecondary = true;
             }
         }
@@ -576,11 +576,11 @@ class InitialScheduleGeneratorTest extends TestCase
 
         $output = $this->generator->generate($input);
 
-        $this->assertNotEmpty($output->getAssignments());
+        $this->assertNotEmpty($output->assignments);
 
         // Verify max hours constraint
         $totalHours = 0;
-        foreach ($output->getAssignments() as $assignment) {
+        foreach ($output->assignments as $assignment) {
             $totalHours += $assignment->getDurationInHours();
         }
 

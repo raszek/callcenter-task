@@ -54,8 +54,8 @@ class MovingAverageForecaster
 
         // Step 7: Build result DTO
         return new ForecastResultDTO(
-            queueName: $request->getQueueName(),
-            startTime: $request->getTargetDatetime(),
+            queueName: $request->queueName,
+            startTime: $request->targetDatetime,
             endTime: $request->getTargetEndDatetime(),
             forecastedCalls: $forecastedCalls,
             averageHandleTimeSeconds: $averageHandleTime,
@@ -66,8 +66,8 @@ class MovingAverageForecaster
             standardDeviation: $standardDeviation,
             metadata: [
                 'algorithm' => 'moving_average',
-                'lookback_weeks' => $request->getLookbackWeeks(),
-                'historical_calls' => array_map(fn($d) => $d->getCallCount(), $matchingData)
+                'lookback_weeks' => $request->lookbackWeeks,
+                'historical_calls' => array_map(fn($d) => $d->callCount, $matchingData)
             ]
         );
     }
@@ -96,17 +96,17 @@ class MovingAverageForecaster
      */
     private function filterMatchingTimeSlots(ForecastRequestDTO $request): array
     {
-        $targetDayOfWeek = (int) $request->getTargetDatetime()->format('N');
-        $targetHour = (int) $request->getTargetDatetime()->format('H');
-        $targetMinute = (int) $request->getTargetDatetime()->format('i');
-        $queueName = $request->getQueueName();
+        $targetDayOfWeek = (int) $request->targetDatetime->format('N');
+        $targetHour = (int) $request->targetDatetime->format('H');
+        $targetMinute = (int) $request->targetDatetime->format('i');
+        $queueName = $request->queueName;
 
         $matchingData = [];
-        $cutoffDate = $request->getTargetDatetime()->modify('-' . $request->getLookbackWeeks() . ' weeks');
+        $cutoffDate = $request->targetDatetime->modify('-' . $request->lookbackWeeks . ' weeks');
 
-        foreach ($request->getHistoricalData() as $dataPoint) {
+        foreach ($request->historicalData as $dataPoint) {
             // Filter by queue name
-            if ($dataPoint->getQueueName() !== $queueName) {
+            if ($dataPoint->queueName !== $queueName) {
                 continue;
             }
 
@@ -122,12 +122,12 @@ class MovingAverageForecaster
             }
 
             // Filter by lookback period (only use data within N weeks)
-            if ($dataPoint->getDatetime() < $cutoffDate) {
+            if ($dataPoint->datetime < $cutoffDate) {
                 continue;
             }
 
             // Must be before target date (can't use future data)
-            if ($dataPoint->getDatetime() >= $request->getTargetDatetime()) {
+            if ($dataPoint->datetime >= $request->targetDatetime) {
                 continue;
             }
 
@@ -135,12 +135,12 @@ class MovingAverageForecaster
         }
 
         // Sort by date (most recent first)
-        usort($matchingData, function($a, $b) {
-            return $b->getDatetime() <=> $a->getDatetime();
+        usort($matchingData, function(HistoricalCallDataDTO $a, HistoricalCallDataDTO $b) {
+            return $b->datetime <=> $a->datetime;
         });
 
         // Limit to lookback weeks (in case we have more data)
-        return array_slice($matchingData, 0, $request->getLookbackWeeks());
+        return array_slice($matchingData, 0, $request->lookbackWeeks);
     }
 
     /**
@@ -154,7 +154,7 @@ class MovingAverageForecaster
 
         $sum = 0;
         foreach ($historicalData as $dataPoint) {
-            $sum += $dataPoint->getCallCount();
+            $sum += $dataPoint->callCount;
         }
 
         return $sum / count($historicalData);
@@ -162,6 +162,8 @@ class MovingAverageForecaster
 
     /**
      * Calculate average handle time across historical data
+     *
+     * @param HistoricalCallDataDTO[] $historicalData
      */
     private function calculateAverageHandleTime(array $historicalData): float
     {
@@ -171,7 +173,7 @@ class MovingAverageForecaster
 
         $sum = 0;
         foreach ($historicalData as $dataPoint) {
-            $sum += $dataPoint->getAverageHandleTimeSeconds();
+            $sum += $dataPoint->averageHandleTimeSeconds;
         }
 
         return $sum / count($historicalData);
@@ -179,6 +181,8 @@ class MovingAverageForecaster
 
     /**
      * Calculate standard deviation of call volumes
+     *
+     * @param HistoricalCallDataDTO[] $historicalData
      */
     private function calculateStandardDeviation(array $historicalData): float
     {
@@ -190,7 +194,7 @@ class MovingAverageForecaster
         $squaredDifferences = 0;
 
         foreach ($historicalData as $dataPoint) {
-            $diff = $dataPoint->getCallCount() - $mean;
+            $diff = $dataPoint->callCount - $mean;
             $squaredDifferences += $diff * $diff;
         }
 
@@ -220,14 +224,14 @@ class MovingAverageForecaster
         $totalWorkloadSeconds = $forecastedCalls * $averageHandleTimeSeconds;
 
         // Available time per agent in this time slot
-        $timeSlotDurationSeconds = $request->getTimeGranularityMinutes() * 60;
-        $availableTimePerAgent = $timeSlotDurationSeconds * $request->getTargetOccupancy();
+        $timeSlotDurationSeconds = $request->timeGranularityMinutes * 60;
+        $availableTimePerAgent = $timeSlotDurationSeconds * $request->targetOccupancy;
 
         // Raw FTE needed
         $rawFTE = $totalWorkloadSeconds / $availableTimePerAgent;
 
         // Adjust for shrinkage (breaks, meetings, training, etc.)
-        $adjustedFTE = $rawFTE / (1 - $request->getShrinkageFactor());
+        $adjustedFTE = $rawFTE / (1 - $request->shrinkageFactor);
 
         return $adjustedFTE;
     }
@@ -251,7 +255,7 @@ class MovingAverageForecaster
             $upperCalls = $forecastedCalls + (1.5 * $standardDeviation);
         } else {
             // Fallback to percentage-based confidence interval
-            $percentage = $request->getConfidenceIntervalPercentage();
+            $percentage = $request->confidenceIntervalPercentage;
             $lowerCalls = $forecastedCalls * (1 - $percentage);
             $upperCalls = $forecastedCalls * (1 + $percentage);
         }
@@ -269,8 +273,8 @@ class MovingAverageForecaster
     private function createEmptyForecast(ForecastRequestDTO $request): ForecastResultDTO
     {
         return new ForecastResultDTO(
-            queueName: $request->getQueueName(),
-            startTime: $request->getTargetDatetime(),
+            queueName: $request->queueName,
+            startTime: $request->targetDatetime,
             endTime: $request->getTargetEndDatetime(),
             forecastedCalls: 0.0,
             averageHandleTimeSeconds: 0.0,
@@ -290,6 +294,7 @@ class MovingAverageForecaster
      * Helper method to generate forecast requests for a full day
      *
      * @return ForecastRequestDTO[]
+     * @throws \Exception
      */
     public static function generateDailyForecastRequests(
         string $queueName,

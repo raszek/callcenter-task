@@ -5,6 +5,7 @@ namespace App\Tests\Controller;
 use App\Entity\Agent;
 use App\Entity\AgentAvailability;
 use App\Repository\AgentAvailabilityRepository;
+use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Response;
 
 class AgentAvailabilityControllerTest extends WebTestCase
@@ -571,11 +572,12 @@ class AgentAvailabilityControllerTest extends WebTestCase
         string $endTime,
         bool $isAvailable
     ): AgentAvailability {
-        $availability = new AgentAvailability();
-        $availability->setAgent($agent);
-        $availability->setStartTime(new \DateTime($startTime));
-        $availability->setEndTime(new \DateTime($endTime));
-        $availability->setIsAvailable($isAvailable);
+        $availability = new AgentAvailability(
+            startTime: new DateTimeImmutable($startTime),
+            endTime: new DateTimeImmutable($endTime),
+            isAvailable: $isAvailable,
+            agent: $agent,
+        );
 
         $entityManager = $this->getService('doctrine.orm.entity_manager');
         $entityManager->persist($availability);

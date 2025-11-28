@@ -1,0 +1,207 @@
+### Variables
+@baseUrl = http://localhost:8000
+@contentType = application/json
+
+###############################################################################
+# Schedule API Tests
+###############################################################################
+
+### Create Schedule - Success (Single Queue, 1 Week)
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales"],
+  "timeSlotGranularityMinutes": 30,
+  "lookbackWeeks": 4,
+  "shrinkageFactor": 0.25,
+  "targetOccupancy": 0.85,
+  "constraints": {
+    "max_hours_per_day": 8,
+    "max_consecutive_hours": 6,
+    "efficiency_weight": 3.0
+  }
+}
+
+### Create Schedule - Multiple Queues
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales", "support", "complaints"],
+  "timeSlotGranularityMinutes": 30,
+  "lookbackWeeks": 4,
+  "shrinkageFactor": 0.25,
+  "targetOccupancy": 0.85
+}
+
+### Create Schedule - Single Day
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-01 18:00:00",
+  "queueNames": ["sales"],
+  "timeSlotGranularityMinutes": 30,
+  "lookbackWeeks": 4
+}
+
+### Create Schedule - 15-minute Granularity
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-02 18:00:00",
+  "queueNames": ["sales"],
+  "timeSlotGranularityMinutes": 15,
+  "lookbackWeeks": 4,
+  "shrinkageFactor": 0.30,
+  "targetOccupancy": 0.80
+}
+
+### Create Schedule - Custom Constraints
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales"],
+  "timeSlotGranularityMinutes": 30,
+  "lookbackWeeks": 4,
+  "constraints": {
+    "max_hours_per_day": 6,
+    "max_consecutive_hours": 4,
+    "efficiency_weight": 5.0,
+    "overstaffing_threshold": 1.15
+  }
+}
+
+###############################################################################
+# Validation Tests
+###############################################################################
+
+### Invalid - Missing Required Fields
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00"
+}
+
+### Invalid - Empty Queue Names
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": []
+}
+
+### Invalid - End Date Before Start Date
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-08 08:00:00",
+  "scheduleEndDate": "2025-12-01 18:00:00",
+  "queueNames": ["sales"]
+}
+
+### Invalid - Invalid Date Format
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "not-a-date",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales"]
+}
+
+### Invalid - Negative Granularity
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales"],
+  "timeSlotGranularityMinutes": -30
+}
+
+### Invalid - Invalid Shrinkage Factor (> 1)
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales"],
+  "shrinkageFactor": 1.5
+}
+
+### Invalid - Invalid Target Occupancy (> 1)
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales"],
+  "targetOccupancy": 1.2
+}
+
+###############################################################################
+# Edge Cases
+###############################################################################
+
+### Edge Case - Very Short Schedule (1 hour)
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 09:00:00",
+  "scheduleEndDate": "2025-12-01 10:00:00",
+  "queueNames": ["sales"],
+  "timeSlotGranularityMinutes": 30
+}
+
+### Edge Case - Non-existent Queue
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["non_existent_queue"]
+}
+
+### Edge Case - Zero Shrinkage
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-02 18:00:00",
+  "queueNames": ["sales"],
+  "shrinkageFactor": 0,
+  "targetOccupancy": 1.0
+}
+
+### Edge Case - Long Lookback Period (12 weeks)
+POST {{baseUrl}}/api/schedules
+Content-Type: {{contentType}}
+
+{
+  "scheduleStartDate": "2025-12-01 08:00:00",
+  "scheduleEndDate": "2025-12-08 18:00:00",
+  "queueNames": ["sales"],
+  "lookbackWeeks": 12
+}

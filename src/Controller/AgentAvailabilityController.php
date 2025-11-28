@@ -78,8 +78,8 @@ class AgentAvailabilityController extends AbstractController
         }
 
         try {
-            $startTime = new \DateTime($request->startTime);
-            $endTime = new \DateTime($request->endTime);
+            $startTime = new \DateTimeImmutable($request->startTime);
+            $endTime = new \DateTimeImmutable($request->endTime);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Invalid datetime format'], Response::HTTP_BAD_REQUEST);
         }
@@ -88,11 +88,12 @@ class AgentAvailabilityController extends AbstractController
             return $this->json(['error' => 'Start time must be before end time'], Response::HTTP_BAD_REQUEST);
         }
 
-        $agentAvailability = new AgentAvailability();
-        $agentAvailability->setAgent($agent);
-        $agentAvailability->setStartTime($startTime);
-        $agentAvailability->setEndTime($endTime);
-        $agentAvailability->setIsAvailable($request->isAvailable);
+        $agentAvailability = new AgentAvailability(
+            startTime: $startTime,
+            endTime: $endTime,
+            isAvailable: $request->isAvailable,
+            agent: $agent
+        );
 
         $this->entityManager->persist($agentAvailability);
         $this->entityManager->flush();
@@ -126,8 +127,8 @@ class AgentAvailabilityController extends AbstractController
         }
 
         try {
-            $startTime = new \DateTime($request->startTime);
-            $endTime = new \DateTime($request->endTime);
+            $startTime = new \DateTimeImmutable($request->startTime);
+            $endTime = new \DateTimeImmutable($request->endTime);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Invalid datetime format'], Response::HTTP_BAD_REQUEST);
         }

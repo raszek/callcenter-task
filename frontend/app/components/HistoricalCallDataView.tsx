@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { HistoricalCallData, HistoricalCallDataFilters } from '../types/historicalCallData';
+import {
+  HistoricalCallData,
+  HistoricalCallDataFilters
+} from '../types/historicalCallData';
 import { Queue } from '../types/agentSkill';
 import { historicalCallDataService } from '../services/historicalCallDataService';
 import { queueService } from '../services/agentSkillService';
@@ -12,6 +15,9 @@ export default function HistoricalCallDataView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateSuccess, setGenerateSuccess] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<HistoricalCallDataFilters>({
     queueName: '',
@@ -112,17 +118,66 @@ export default function HistoricalCallDataView() {
     return total / data.length;
   };
 
+  const handleGenerateRandomData = async () => {
+    setGenerating(true);
+    setGenerateError(null);
+    setGenerateSuccess(null);
+
+    try {
+      // Call backend to generate random data
+      const result = await historicalCallDataService.generate({
+        days: 30,
+        intervalHours: 1,
+      });
+
+      setGenerateSuccess(result.message);
+
+      // Refresh the data
+      await loadData();
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setGenerateSuccess(null);
+      }, 5000);
+    } catch (err) {
+      setGenerateError(err instanceof Error ? err.message : 'Failed to generate historical call data');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   if (!mounted) {
     return <div className="p-4">Loading...</div>;
   }
 
   return (
     <div className="p-6">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Historical Call Data</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Historical Call Data</h1>
+        <button
+          onClick={handleGenerateRandomData}
+          disabled={generating}
+          className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:bg-gray-400"
+        >
+          {generating ? 'Generating...' : 'Generate Random Data'}
+        </button>
+      </div>
 
       {error && (
         <div className="mb-4 rounded bg-red-100 p-3 text-red-700">
           {error}
+        </div>
+      )}
+
+      {generateError && (
+        <div className="mb-4 rounded bg-red-100 p-3 text-red-700">
+          {generateError}
+        </div>
+      )}
+
+      {generateSuccess && (
+        <div className="mb-4 rounded bg-green-100 p-3 text-green-700">
+          {generateSuccess}
         </div>
       )}
 

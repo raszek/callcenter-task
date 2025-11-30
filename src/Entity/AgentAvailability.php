@@ -25,7 +25,7 @@ class AgentAvailability
     private ?bool $isAvailable = null;
 
     #[ORM\ManyToOne(inversedBy: 'agentAvailabilities')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Agent $agent = null;
 
     public function __construct(

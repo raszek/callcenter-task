@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AgentAvailability, CreateAgentAvailabilityRequest } from '../types/agentAvailability';
 import { agentAvailabilityService } from '../services/agentAvailabilityService';
+import {formatDateForAPI} from '@/app/helpers/date';
 
 interface AgentAvailabilityViewProps {
   agentId: number;
@@ -68,7 +69,14 @@ export default function AgentAvailabilityView({ agentId }: AgentAvailabilityView
     }
 
     try {
-      await agentAvailabilityService.create(agentId, newAvailability);
+      // Format datetimes for PHP server
+      const formattedData = {
+        startTime: formatDateForAPI(newAvailability.startTime),
+        endTime: formatDateForAPI(newAvailability.endTime),
+        isAvailable: newAvailability.isAvailable,
+      };
+
+      await agentAvailabilityService.create(agentId, formattedData);
       setNewAvailability({
         startTime: '',
         endTime: '',
@@ -98,7 +106,14 @@ export default function AgentAvailabilityView({ agentId }: AgentAvailabilityView
     }
 
     try {
-      await agentAvailabilityService.update(agentId, id, editForm);
+      // Format datetimes for PHP server
+      const formattedData = {
+        startTime: formatDateForAPI(editForm.startTime),
+        endTime: formatDateForAPI(editForm.endTime),
+        isAvailable: editForm.isAvailable,
+      };
+
+      await agentAvailabilityService.update(agentId, id, formattedData);
       setEditingId(null);
       await loadAvailabilities();
     } catch (err) {

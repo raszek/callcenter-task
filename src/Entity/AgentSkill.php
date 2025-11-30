@@ -23,7 +23,7 @@ class AgentSkill
     private ?bool $isPrimary = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Agent $agent = null;
 
     #[ORM\ManyToOne]

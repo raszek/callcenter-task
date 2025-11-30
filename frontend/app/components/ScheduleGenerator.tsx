@@ -5,6 +5,7 @@ import { Queue } from '../types/agentSkill';
 import { CreateScheduleRequest, ScheduleResponse, ScheduleAssignment } from '../types/schedule';
 import { queueService } from '../services/agentSkillService';
 import { scheduleService } from '../services/scheduleService';
+import {formatDateForAPI} from '@/app/helpers/date';
 
 export default function ScheduleGenerator() {
   const [queues, setQueues] = useState<Queue[]>([]);
@@ -52,18 +53,6 @@ export default function ScheduleGenerator() {
         return [...prev, queueName];
       }
     });
-  };
-
-  const formatDateForAPI = (dateTimeLocal: string): string => {
-    if (!dateTimeLocal) return '';
-    const date = new Date(dateTimeLocal);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
   const handleGenerate = async (e: React.FormEvent) => {

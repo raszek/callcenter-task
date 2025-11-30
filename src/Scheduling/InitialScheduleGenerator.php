@@ -21,8 +21,6 @@ namespace App\Scheduling;
  *  3. Time-based Iteration: Ensures coverage at every time point
  *  4. Constraint Enforcement: Hard constraints checked during candidate selection
  *  5. Post-processing: Merges assignments for cleaner output and better UX
-
-  This optimization model transforms raw availability + demand data into an actionable work schedule while balancing efficiency, fairness, and business constraints.
  */
 class InitialScheduleGenerator
 {
